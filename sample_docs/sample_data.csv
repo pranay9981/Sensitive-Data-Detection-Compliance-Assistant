@@ -1,0 +1,9 @@
+employee_id,name,email,phone,aadhaar,pan,salary,department
+EMP001,Rahul Verma,rahul.verma@company.com,9876543210,234567890123,ABCDE1234F,850000,Engineering
+EMP002,Sunita Patel,sunita.patel@company.com,8765432109,345678901234,BCDEF2345G,720000,HR
+EMP003,Amit Singh,amit.singh@company.com,7654321098,456789012345,CDEFG3456H,1200000,Sales
+EMP004,Priya Nair,priya.nair@company.com,6543210987,567890123456,DEFGH4567I,950000,Finance
+EMP005,Kiran Kumar,kiran.kumar@company.com,9123456780,678901234567,EFGHI5678J,680000,Operations
+api_key,sk-live-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890
+db_password,Admin@123Secure
+credit_card,5425233430109903

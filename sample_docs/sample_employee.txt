@@ -1,0 +1,54 @@
+CONFIDENTIAL — INTERNAL USE ONLY
+HR Department — Employee Records
+Do Not Distribute
+
+Employee Record Sheet
+=====================
+
+Name: Rajesh Kumar Sharma
+Employee ID: EMP-2024-0198
+Department: Software Engineering
+Designation: Senior Developer
+
+Personal Details:
+-----------------
+Date of Birth: 12/08/1990
+Aadhaar Number: 2345 6789 0123
+PAN Number: ABCDE1234F
+Phone: +91 9876543210
+Email: rajesh.sharma@techcorp.in
+Alternate Email: rajesh1990@gmail.com
+
+Financial Details:
+------------------
+Bank: HDFC Bank
+Account Number: 50100234567890
+IFSC Code: HDFC0001234
+Salary: INR 12,00,000 per annum
+
+Emergency Contact:
+------------------
+Name: Priya Sharma
+Phone: 9988776655
+Relation: Spouse
+
+System Access:
+--------------
+API Key: sk-prod-xK9mNpQrTuWvYz2aAbBcDdEeFfGgHhIi
+DB Password: P@ssw0rd!Secure#2024
+JWT Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJFTVAtMjAyNC0wMTk4IiwiaWF0IjoxNzE1MDAwMDAwfQ.abc123xyz
+
+Credit Card: 4532015112830366
+Expiry: 12/27
+CVV: 456
+
+Notes: This document is classified as RESTRICTED. Not for distribution outside HR team.
+IP Address of workstation: 192.168.1.105
+
+Second Employee:
+Name: Anita Mehta
+Email: anita.mehta@techcorp.in
+Aadhaar: 9876 5432 1098
+PAN: FGHIJ5678K
+Phone: 8765432109
+Employee ID: EMP-2024-0245

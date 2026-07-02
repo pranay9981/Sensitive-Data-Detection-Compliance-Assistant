@@ -1,0 +1,16 @@
+.env
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+.venv/
+venv/
+env/
+audit_log.csv
+*.faiss
+*.pkl
+.DS_Store
+Thumbs.db
