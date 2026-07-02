@@ -4,6 +4,12 @@
 
 ---
 
+## 🚀 Live Demo
+
+**[https://sensitive-data-detection.streamlit.app](https://sensitive-data-detection.streamlit.app)**
+
+---
+
 ## 📸 Features
 
 | Feature | Description |
