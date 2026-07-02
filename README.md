@@ -4,22 +4,16 @@
 
 ---
 
-## 🚀 Live Demo
-
-**Deployed App:** [https://proteccio-data-assistant.streamlit.app](https://proteccio-data-assistant.streamlit.app)
-
----
-
 ## 📸 Features
 
 | Feature | Description |
 |---|---|
 | 📤 Document Upload | PDF, TXT, CSV support |
-| 🔍 PII Detection | 12+ sensitive data types via regex + spaCy |
+| 🔍 PII Detection | 13 sensitive data types via regex patterns |
 | ⚖️ Risk Classification | Low / Medium / High scoring with weighted algorithm |
 | 🤖 AI Compliance Report | Groq Llama-3.3-70b generates structured reports |
-| 💬 Document Q&A | RAG-powered Q&A using FAISS + LangChain |
-| 🔒 Data Redaction | Partial masking + full redaction download |
+| 💬 Document Q&A | TF-IDF RAG-powered Q&A — no API needed for retrieval |
+| 🔒 Data Redaction | Partial masking + full redaction with download |
 | 📊 Audit Logging | CSV audit trail of all scans |
 
 ---
@@ -29,7 +23,7 @@
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Streamlit Frontend                     │
-│   Upload → Detection Tab → Summary Tab → QA Tab         │
+│  Upload → Detection → Compliance → Q&A → Redact → Audit │
 └──────────────────────┬──────────────────────────────────┘
                        │
          ┌─────────────▼──────────────┐
@@ -40,39 +34,40 @@
                        │
          ┌─────────────▼──────────────┐
          │      Detection Engine       │
-         │  Regex Patterns (12 types)  │
-         │  + spaCy NER (supporting)   │
+         │  13 Regex Patterns          │
+         │  (Indian + international)   │
          └──────┬──────────────┬───────┘
                 │              │
     ┌───────────▼──┐    ┌──────▼──────────────┐
     │ Risk Scorer  │    │   RAG Pipeline       │
-    │ Weighted algo│    │ LangChain Splitter   │
-    │ LOW/MED/HIGH │    │ → FAISS Index        │
+    │ Weighted algo│    │ sklearn TF-IDF       │
+    │ LOW/MED/HIGH │    │ → Cosine Similarity  │
     └───────────┬──┘    │ → Groq LLM Answer   │
                 │       └──────────────────────┘
     ┌───────────▼──────────────────────┐
     │         Groq AI Engine           │
     │   llama-3.3-70b-versatile        │
-    │  Compliance Summary + QA         │
+    │  Compliance Summary + Q&A        │
     └──────────────────────────────────┘
 ```
 
 ---
 
-## 🔍 PII Detection Types
+## 🔍 PII Detection Types (13 Types)
 
-| Type | Severity | Pattern |
+| Type | Severity | Description |
 |---|---|---|
-| Aadhaar Number | 🔴 HIGH | 12-digit format starting 2-9 |
+| Aadhaar Number | 🔴 HIGH | 12-digit format starting 2–9 |
 | PAN Number | 🔴 HIGH | ABCDE1234F format |
-| Credit Card | 🔴 HIGH | Visa/MC/Amex/Discover |
+| Credit Card Number | 🔴 HIGH | Visa / MasterCard / Amex / Discover |
+| JWT Token | 🔴 HIGH | eyJ… three-part base64 format |
 | API Key / Password | 🔴 HIGH | key/secret/token followed by long string |
-| JWT Token | 🔴 HIGH | eyJ... format |
-| Bank Account / IFSC | 🔴 HIGH | IFSC code + 9-18 digit accounts |
-| Email Address | 🟠 MEDIUM | Standard email regex |
-| Phone Number | 🟠 MEDIUM | Indian mobile/landline |
+| IFSC Code | 🔴 HIGH | 11-char bank branch code |
+| Bank Account Number | 🔴 HIGH | 9–18 digits with keyword context |
+| Email Address | 🟠 MEDIUM | Standard email format |
+| Phone Number | 🟠 MEDIUM | Indian mobile and landline numbers |
 | Employee ID | 🟠 MEDIUM | EMP/STAFF prefix patterns |
-| Date of Birth | 🟠 MEDIUM | DOB keyword + date |
+| Date of Birth | 🟠 MEDIUM | DOB keyword + date value |
 | IP Address | 🟢 LOW | IPv4 format |
 | Confidential Keywords | 🟢 LOW | "confidential", "restricted", etc. |
 
@@ -81,7 +76,7 @@
 ## 🤖 AI/ML Approach
 
 ### 1. Rule-Based Detection (Primary)
-Regex patterns tuned for Indian PII formats (Aadhaar, PAN, IFSC) alongside international formats (credit cards, JWT tokens). Fast, deterministic, zero API dependency.
+Regex patterns tuned for Indian PII formats (Aadhaar, PAN, IFSC) alongside international formats (credit cards, JWT tokens). Fast, deterministic, zero API dependency. Patterns use `re.IGNORECASE` per-pattern (Python 3.11+ compatible) to avoid global flag conflicts.
 
 ### 2. LLM-Powered Analysis (Groq / Llama 3.3-70b)
 Structured prompting with document context + detection results → generates compliance reports aligned with:
@@ -90,11 +85,12 @@ Structured prompting with document context + detection results → generates com
 - **PCI-DSS** (when card data detected)
 - **GDPR** (when applicable)
 
-### 3. RAG for Q&A
-Documents are chunked (500-token chunks, 100-token overlap) using LangChain's `RecursiveCharacterTextSplitter`, embedded via `sentence-transformers/all-MiniLM-L6-v2`, indexed in FAISS, and retrieved for each question. The retrieved context grounds the LLM answer, reducing hallucination.
+### 3. RAG for Q&A (sklearn TF-IDF)
+Documents are chunked by paragraph then 120-word windows. Chunks are vectorised with `TfidfVectorizer` (sklearn) and retrieved per question using cosine similarity. The retrieved context grounds the Groq LLM answer, reducing hallucination. No external embedding API or model download required.
 
 ### 4. Risk Scoring Algorithm
-Weighted scoring: HIGH PII = 10 pts/instance, MEDIUM = 4 pts, LOW = 1 pt. Capped at 100. Level thresholds: ≥2 HIGH types or score≥30 → HIGH risk; 1 HIGH or ≥2 MEDIUM or score≥10 → MEDIUM; else LOW.
+Weighted scoring: HIGH PII = 10 pts/instance, MEDIUM = 4 pts, LOW = 1 pt. Capped at 100.  
+Level thresholds: ≥ 2 HIGH types or score ≥ 30 → **HIGH**; 1 HIGH or ≥ 2 MEDIUM or score ≥ 10 → **MEDIUM**; else **LOW**.
 
 ---
 
@@ -108,24 +104,21 @@ Weighted scoring: HIGH PII = 10 pts/instance, MEDIUM = 4 pts, LOW = 1 pt. Capped
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/proteccio-data-assistant.git
-cd proteccio-data-assistant
+git clone https://github.com/pranay9981/Sensitive-Data-Detection-Compliance-Assistant.git
+cd Sensitive-Data-Detection-Compliance-Assistant
 
 # 2. Create virtual environment
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Download spaCy model
-python -m spacy download en_core_web_sm
-
-# 5. Configure environment
+# 4. Configure environment
 cp .env.example .env
 # Edit .env and add your GROQ_API_KEY
 
-# 6. Run the application
+# 5. Run the application
 streamlit run app/main.py
 ```
 
@@ -143,22 +136,24 @@ docker run -p 8501:8501 -e GROQ_API_KEY=your_key_here proteccio-assistant
 ## 🧪 Testing
 
 Try uploading the included sample files in `sample_docs/`:
-- `sample_employee.txt` — Contains Aadhaar, PAN, API keys, credit card → HIGH risk
-- `sample_data.csv` — Employee data CSV with PII → HIGH risk
+- `sample_employee.txt` — Contains Aadhaar, PAN, API keys, credit card, JWT → **HIGH** risk
+- `sample_data.csv` — Employee data CSV with 5 rows of PII → **HIGH** risk
 
 ---
 
 ## 🚧 Challenges Faced
 
-1. **False Positives in Bank Account Detection** — The broad regex for 9-18 digit numbers matches many non-financial numbers. Mitigated by requiring keyword context proximity.
+1. **Bank Account False Positives** — A bare `\d{9-18}` regex matched phone numbers, Aadhaar, and salary figures. Fixed by requiring keyword context (e.g. "account no:", "acc no:") before the digit sequence.
 
-2. **PDF Text Extraction Quality** — Scanned PDFs with no text layer return empty content. Addressed with a warning; full OCR (Tesseract) is a planned improvement.
+2. **Python 3.11 Regex Incompatibility** — `(?i)` inline flags inside alternations raise `PatternError` in Python 3.11+. Fixed by passing `re.IGNORECASE` as a per-pattern `flags` argument to `re.findall`.
 
-3. **RAG Embedding Speed** — First-time model download for `all-MiniLM-L6-v2` is slow. Cached after first use via HuggingFace cache.
+3. **CSV Double-Counting** — Concatenating `df.to_string()` and a flat value join caused each cell to appear twice. Fixed by building one `"col: value | col: value"` line per row.
 
-4. **Groq Rate Limits** — Free tier has per-minute token limits. Handled by capping document preview sent to LLM at 2000 characters.
+4. **Streamlit Tab Reset on `st.rerun()`** — Calling `st.rerun()` inside a tab always resets the active tab to tab 1. Fixed by processing all state changes (compliance generation, Q&A) inline in the same render cycle so no explicit rerun is needed.
 
-5. **Indian PII Specificity** — Aadhaar regex needed to exclude numbers starting with 0 or 1 (invalid Aadhaar). PAN required exact 10-character format validation.
+5. **RAG Index Lost on Server Restart** — Module-level TF-IDF globals reset when Streamlit's file watcher reloaded the server, while `rag_built=True` remained in session state. Fixed with an `is_index_built()` guard that auto-rebuilds the index transparently.
+
+6. **Groq Rate Limits** — Free tier has per-minute token limits. Mitigated by capping document text sent to the LLM and using RAG retrieval (top-4 chunks) rather than sending the full document.
 
 ---
 
@@ -167,33 +162,33 @@ Try uploading the included sample files in `sample_docs/`:
 - [ ] **OCR Support** — Tesseract integration for scanned PDFs and images
 - [ ] **Multi-document analysis** — Compare PII exposure across document sets
 - [ ] **Named Entity Recognition** — spaCy NER for PERSON, ORG, LOCATION detection
-- [ ] **Database integration** — Store scan history in PostgreSQL
-- [ ] **Role-based access** — Admin/analyst roles with different redaction permissions
-- [ ] **CI/CD pipeline** — GitHub Actions for automated testing and deployment
-- [ ] **Webhook alerts** — Notify security teams when HIGH risk documents are uploaded
 - [ ] **DOCX support** — Microsoft Word document parsing
-- [ ] **Custom regex rules** — Allow organizations to define their own PII patterns
+- [ ] **Custom regex rules** — Allow organisations to define their own PII patterns
 - [ ] **Compliance framework selector** — HIPAA, SOC 2, ISO 27001 templates
+- [ ] **Webhook alerts** — Notify security teams when HIGH risk documents are uploaded
+- [ ] **Database integration** — Store scan history in PostgreSQL
 
 ---
 
 ## 📁 Project Structure
 
 ```
-proteccio-data-assistant/
+Sensitive-Data-Detection-Compliance-Assistant/
 ├── app/
-│   ├── main.py                  # Streamlit UI (all 5 tabs)
+│   ├── main.py                  # Streamlit UI (5 tabs)
 │   ├── backend/
-│   │   ├── document_parser.py   # PDF/TXT/CSV text extraction
+│   │   ├── document_parser.py   # PDF / TXT / CSV text extraction
 │   │   ├── detector.py          # Regex PII detection + risk scoring
-│   │   ├── ai_engine.py         # Groq LLM — compliance summary + QA
-│   │   └── rag.py               # FAISS RAG pipeline
+│   │   ├── ai_engine.py         # Groq LLM — compliance summary + Q&A
+│   │   └── rag.py               # TF-IDF RAG pipeline (sklearn)
 │   └── utils/
 │       ├── masking.py           # Partial masking + full redaction
 │       └── audit_logger.py      # CSV audit trail
 ├── sample_docs/
 │   ├── sample_employee.txt      # Test file — HIGH risk
 │   └── sample_data.csv          # Test file — HIGH risk
+├── .streamlit/
+│   └── config.toml              # Disables file watcher (prevents torch conflicts)
 ├── requirements.txt
 ├── Dockerfile
 ├── .env.example
