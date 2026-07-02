@@ -48,14 +48,17 @@ def retrieve_context(question: str, k: int = 4) -> str:
     q_vec = _vectorizer.transform([question])
     scores = cosine_similarity(q_vec, _tfidf_matrix).flatten()
     top_indices = scores.argsort()[-k:][::-1]
-    return "\n\n---\n\n".join(_chunks[i] for i in top_indices if scores[i] > 0)
+    # Return top-k chunks regardless of score — TF-IDF gives 0 for short/conversational
+    # questions with no exact term match, but chunks are still the best available context
+    return "\n\n---\n\n".join(_chunks[i] for i in top_indices)
 
 
 def rag_answer(question: str, detections_summary: str) -> str:
     """RAG pipeline: retrieve relevant chunks → answer with Groq LLM."""
     context = retrieve_context(question)
     if not context:
-        return "No document has been indexed yet. Please upload a document first."
+        # Index not built yet — fall back signal to caller
+        return ""
 
     client = Groq(api_key=os.getenv("GROQ_API_KEY", ""))
 

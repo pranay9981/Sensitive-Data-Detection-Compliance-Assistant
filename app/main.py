@@ -333,7 +333,9 @@ with tab3:
                     except Exception:
                         st.session_state.rag_built = False
                 if st.session_state.rag_built:
-                    return rag_answer(question, det_summary)
+                    ans = rag_answer(question, det_summary)
+                    if ans:  # empty string means index not ready — fall through
+                        return ans
             return answer_question(question, doc["text"], detections)
 
         # ── Quick-question buttons ─────────────────────────────────────────
